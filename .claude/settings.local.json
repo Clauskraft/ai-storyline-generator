@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__list_dir",
+      "Bash(dir:*)",
+      "WebFetch(domain:docs.google.com)",
+      "mcp__serena__replace_symbol_body",
+      "mcp__serena__activate_project"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

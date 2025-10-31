@@ -1,0 +1,5 @@
+{
+  "name": "AI Storyline Generator",
+  "description": "An application that analyzes text and contextual files to generate a compelling slide-based storyline, complete with AI-generated illustrations for each slide.",
+  "requestFramePermissions": []
+}

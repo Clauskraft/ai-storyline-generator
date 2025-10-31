@@ -1,0 +1,62 @@
+# Node modules
+node_modules
+npm-debug.log
+
+# Build outputs
+dist
+build
+
+# Development files
+.git
+.gitignore
+*.md
+!README.md
+
+# Environment files (should be mounted or set at runtime)
+.env
+.env.local
+.env*.local
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test and coverage
+coverage
+.nyc_output
+*.test.js
+*.spec.js
+__tests__
+
+# Logs
+logs
+*.log
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Docker files (don't include in image)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation (except README)
+docs
+*.md
+!README.md
+
+# Claude Code artifacts
+.claude
+claudedocs
+
+# PDF files used for development
+*.pdf
