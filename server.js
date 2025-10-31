@@ -566,6 +566,58 @@ Provide comprehensive notes that a presenter could use, including:
   }
 });
 
+// Chat with bot endpoint
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, chatHistory, storylineContext } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    // Build context from storyline
+    let context = '';
+    if (storylineContext && storylineContext.length > 0) {
+      context = 'Current storyline:\n';
+      storylineContext.forEach((slide, idx) => {
+        context += `Slide ${idx + 1}: ${slide.title}\n${slide.content}\n\n`;
+      });
+    }
+
+    // Build chat history
+    let history = '';
+    if (chatHistory && chatHistory.length > 0) {
+      chatHistory.forEach(msg => {
+        history += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}\n`;
+      });
+    }
+
+    const prompt = `You are a helpful AI assistant helping with presentation creation.
+
+${context}
+
+Previous conversation:
+${history}
+
+User: ${message}
+
+Provide a helpful, concise response. If the user asks about the storyline, reference the slides above.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    res.json({ text: response.text });
+  } catch (error) {
+    console.error('Error in chat:', error);
+    res.status(500).json({
+      error: 'Failed to process chat',
+      message: error.message
+    });
+  }
+});
+
 // Serve static files in production (Docker/deployed environment)
 if (process.env.NODE_ENV === 'production') {
   // Serve the built frontend

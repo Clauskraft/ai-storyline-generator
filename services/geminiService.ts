@@ -194,6 +194,22 @@ export async function generateSpeakerNotes(slide: Slide): Promise<string> {
 }
 
 /**
+ * Chat with AI bot about the storyline
+ */
+export async function chatWithBot(
+  message: string,
+  chatHistory: any[],
+  storylineContext: StorylineSlide[]
+): Promise<{ text: string; sources?: string[] }> {
+  const result = await apiCall<{ text: string; sources?: string[] }>('/api/chat', {
+    message,
+    chatHistory,
+    storylineContext
+  });
+  return result;
+}
+
+/**
  * Health check for backend API
  */
 export async function checkApiHealth(): Promise<boolean> {

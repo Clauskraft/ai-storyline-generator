@@ -1,10 +1,10 @@
 import * as pdfjsLib from 'pdfjs-dist/build/pdf';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker';
 // import { parse } from 'pptx-js'; // Package not available - PPTX support disabled
 
 // Configure the PDF.js worker
 if (typeof window !== 'undefined') {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+    // Use CDN for worker to avoid build issues
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.296/build/pdf.worker.min.mjs';
 }
 
 async function extractTextFromTxt(file: File): Promise<string> {
