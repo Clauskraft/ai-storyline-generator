@@ -7,13 +7,13 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install ALL dependencies (including devDependencies for build)
 RUN npm ci
 
-# Copy source code
+# Copy ALL source code (needed for TypeScript compilation and Vite build)
 COPY . .
 
-# Build frontend (Vite build)
+# Build frontend (Vite build - compiles TypeScript and bundles)
 RUN npm run build
 
 # Stage 2: Production image
@@ -25,11 +25,10 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
-# Copy backend server
+# Copy backend server (pure JavaScript - no TypeScript)
 COPY server.js ./
-COPY services ./services
 
 # Copy built frontend from builder stage
 COPY --from=frontend-builder /app/dist ./dist

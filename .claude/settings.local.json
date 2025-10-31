@@ -6,7 +6,9 @@
       "Bash(dir:*)",
       "WebFetch(domain:docs.google.com)",
       "mcp__serena__replace_symbol_body",
-      "mcp__serena__activate_project"
+      "mcp__serena__activate_project",
+      "Bash(railway status:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
