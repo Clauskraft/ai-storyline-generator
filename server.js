@@ -733,6 +733,36 @@ Provide a helpful, concise response. If the user asks about the storyline, refer
   }
 });
 
+// NEW: Analytics endpoint (for tracking events)
+app.post('/api/analytics', async (req, res) => {
+  try {
+    const { event, properties, userId, sessionId } = req.body;
+    
+    // In production, forward to analytics service (Mixpanel, Amplitude, etc.)
+    console.log('[Analytics]', event, properties);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error tracking analytics:', error);
+    res.status(500).json({ error: 'Failed to track analytics' });
+  }
+});
+
+// NEW: Usage limits endpoint
+app.get('/api/usage', (req, res) => {
+  // Return usage statistics
+  res.json({
+    tier: 'free',
+    presentationsThisMonth: 0,
+    monthlyLimit: 5,
+    features: {
+      collaboration: false,
+      analytics: false,
+      exportFormats: ['pptx'],
+    }
+  });
+});
+
 // Serve static files in production (Docker/deployed environment)
 if (process.env.NODE_ENV === 'production') {
   // Serve the built frontend

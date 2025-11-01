@@ -31,7 +31,7 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  async componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error to console in development
     console.error('Error Boundary caught an error:', error, errorInfo);
 
@@ -41,13 +41,18 @@ class ErrorBoundary extends Component<Props, State> {
       errorInfo
     });
 
+    // Track error with analytics
+    try {
+      const { analyticsService } = await import('../services/analyticsService');
+      analyticsService.trackError(error, 'error_boundary');
+    } catch (importError) {
+      console.error('Failed to import analytics service:', importError);
+    }
+
     // Call optional error handler
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
-
-    // In production, you would send this to an error reporting service like Sentry
-    // logErrorToService(error, errorInfo);
   }
 
   handleReset = () => {

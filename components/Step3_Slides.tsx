@@ -2,9 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Slide } from '../types';
 import { findStockImages, generateImageForSlide, editImage, generateSpeakerNotes } from '../services/geminiService';
 import { exportToPptx } from '../services/exportService';
+import { enhancedExportService } from '../services/exportEnhancementService';
+import { versionHistoryService } from '../services/versionHistoryService';
+import { analyticsService } from '../services/analyticsService';
 import SlideCard from './SlideCard';
 import Loader from './Loader';
 import Modal from './Modal';
+import ExportModal from './ExportModal';
+import ShareButton from './ShareButton';
+import VersionHistoryPanel from './VersionHistoryPanel';
+import OfflineIndicator from './OfflineIndicator';
 import { ChevronLeftIcon, WandSparklesIcon, PresentationIcon, GoogleSlidesIcon } from './Icons';
 import { useContent, useBrandKit, useNavigation } from '../contexts/AppContext';
 
@@ -22,8 +29,11 @@ const Step3Slides: React.FC = () => {
     const [generatingAiImageIndex, setGeneratingAiImageIndex] = useState<number | null>(null);
     const [isExporting, setIsExporting] = useState(false);
     const [isGoogleSlidesModalOpen, setIsGoogleSlidesModalOpen] = useState(false);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [unsplashApiKey, setUnsplashApiKey] = useState<string | null>(null);
+    const [presentationId, setPresentationId] = useState<string>(() => `pres_${Date.now()}`);
 
     useEffect(() => {
         setUnsplashApiKey(localStorage.getItem('unsplash_api_key'));
@@ -38,6 +48,9 @@ const Step3Slides: React.FC = () => {
                 const initialSlides: Slide[] = storyline.map(s => ({ ...s, layout: 'TITLE_CONTENT', imageSuggestions: [] }));
                 setFinalSlides(initialSlides);
 
+                // Track presentation creation
+                analyticsService.trackPresentationCreated(generationOptions.model, initialSlides.length, false);
+
                 const suggestionPromises = storyline.map(slide => 
                     findStockImages(slide.imagePrompt, unsplashApiKey).catch(err => {
                         console.error(`Failed to get suggestions for slide "${slide.title}":`, err);
@@ -48,28 +61,84 @@ const Step3Slides: React.FC = () => {
 
                 setFinalSlides(prevSlides => {
                     if (!prevSlides) return null;
-                    return prevSlides.map((slide, index) => {
+                    const updated = prevSlides.map((slide, index) => {
                         const result = results[index];
                         if ('error' in result) {
                             return { ...slide, imageUrlError: result.error || 'Failed to fetch suggestions.' };
                         }
                         return { ...slide, imageSuggestions: result as any };
                     });
+                    
+                    // Save initial version after slides are set
+                    setTimeout(() => {
+                        try {
+                            versionHistoryService.saveVersion(
+                                presentationId,
+                                updated,
+                                brandKit,
+                                'Initial version'
+                            );
+                        } catch (error) {
+                            console.error('Failed to save initial version:', error);
+                        }
+                    }, 100);
+                    
+                    return updated;
                 });
                 setLoadingState({ isLoading: false, message: '' });
             };
             fetchSuggestions();
         }
-    }, [storyline, finalSlides, setFinalSlides, unsplashApiKey]);
+    }, [storyline, finalSlides, setFinalSlides, unsplashApiKey, presentationId, brandKit, generationOptions.model]);
+
+    // Auto-save versions periodically
+    useEffect(() => {
+        if (!finalSlides) return;
+        const saveTimer = setTimeout(() => {
+            saveVersion();
+        }, 30000); // Save every 30 seconds
+        return () => clearTimeout(saveTimer);
+    }, [finalSlides]);
     
+    const saveVersion = useCallback(() => {
+        if (!finalSlides || !presentationId) return;
+        try {
+            versionHistoryService.saveVersion(
+                presentationId,
+                finalSlides,
+                brandKit,
+                'Auto-saved'
+            );
+        } catch (error) {
+            console.error('Failed to save version:', error);
+        }
+    }, [finalSlides, presentationId, brandKit]);
+
     const handleUpdateSlide = useCallback((index: number, newSlideData: Partial<Slide>) => {
         setFinalSlides(currentSlides => {
             if (!currentSlides) return null;
             const updatedSlides = [...currentSlides];
             updatedSlides[index] = { ...updatedSlides[index], ...newSlideData };
+            
+            // Save version on update
+            setTimeout(() => {
+                if (updatedSlides) {
+                    try {
+                        versionHistoryService.saveVersion(
+                            presentationId,
+                            updatedSlides,
+                            brandKit,
+                            `Updated slide ${index + 1}`
+                        );
+                    } catch (error) {
+                        console.error('Failed to save version:', error);
+                    }
+                }
+            }, 1000);
+            
             return updatedSlides;
         });
-    }, [setFinalSlides]);
+    }, [setFinalSlides, presentationId, brandKit]);
 
     const handleSelectImage = (index: number, imageUrl: string) => handleUpdateSlide(index, { imageUrl, imageSuggestions: [], imageUrlError: undefined });
     const handleGenerateAiImage = async (index: number) => {
@@ -181,12 +250,18 @@ const Step3Slides: React.FC = () => {
             {isPresentationReady && (
                 <div className="my-8 p-6 bg-gray-800/50 rounded-lg border border-gray-700 w-full max-w-3xl">
                     <h3 className="text-xl font-bold text-center text-[var(--color-primary)] mb-4">Export Your Presentation</h3>
-                    {isExporting ? <Loader message="Generating .pptx file..." /> : (
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button onClick={handlePptxExport} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"><PresentationIcon className="h-5 w-5" />Download as PowerPoint (.pptx)</button>
-                            <button onClick={handleGoogleSlidesExport} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-md text-black bg-yellow-400 hover:bg-yellow-500"><GoogleSlidesIcon className="h-5 w-5" />Export to Google Slides</button>
+                    {isExporting ? <Loader message="Generating file..." /> : (
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                            <button onClick={() => setIsExportModalOpen(true)} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"><PresentationIcon className="h-5 w-5" />Export Options</button>
+                            <button onClick={handlePptxExport} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"><PresentationIcon className="h-5 w-5" />PowerPoint (.pptx)</button>
                         </div>
                     )}
+                    <div className="mt-4 flex gap-3 justify-center">
+                        <ShareButton presentationId={presentationId} />
+                        <button onClick={() => setIsVersionHistoryOpen(true)} className="px-4 py-2 text-sm font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600">
+                            History
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -194,6 +269,7 @@ const Step3Slides: React.FC = () => {
                  <button onClick={previousStep} className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-600 text-gray-300 bg-gray-700 hover:bg-gray-600"><ChevronLeftIcon className="h-5 w-5" />Back</button>
                  <button onClick={restart} className="flex items-center justify-center gap-2 px-6 py-3 border-transparent text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90"><WandSparklesIcon className="h-5 w-5" />Start Over</button>
             </div>
+            
             <Modal isOpen={isGoogleSlidesModalOpen} onClose={() => setIsGoogleSlidesModalOpen(false)} title="Export to Google Slides">
                 <div className="text-gray-300 space-y-4">
                     <p>To import your presentation into Google Slides, please follow these simple steps:</p>
@@ -208,6 +284,23 @@ const Step3Slides: React.FC = () => {
                     </ol>
                 </div>
             </Modal>
+
+            <OfflineIndicator />
+            <ExportModal
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                slides={finalSlides || []}
+                brandKit={brandKit}
+            />
+            <VersionHistoryPanel
+                isOpen={isVersionHistoryOpen}
+                onClose={() => setIsVersionHistoryOpen(false)}
+                presentationId={presentationId}
+                onRestore={(version) => {
+                    setFinalSlides(version.slides);
+                    setIsVersionHistoryOpen(false);
+                }}
+            />
         </div>
     );
 };

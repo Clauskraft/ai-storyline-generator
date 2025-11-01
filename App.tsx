@@ -3,6 +3,8 @@ import { AppProvider, useAppContext, useNavigation, useProject, useUI } from './
 import { StorylineSlide, generateStorylineFromTemplate, extractStorylineFromUpload } from './services/geminiService';
 import { extractTextFromFile } from './services/importService';
 import { WandSparklesIcon, SaveIcon, SettingsIcon } from './components/Icons';
+import { useAnalytics, useFeatureTracking } from './hooks/useAnalytics';
+import { useOffline } from './hooks/useOffline';
 import Step0Welcome from './components/Step0_Welcome';
 import Step1Input from './components/Step1_Input';
 import Step2Storyline from './components/Step2_Storyline';
@@ -21,6 +23,11 @@ function AppContent() {
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false);
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = React.useState(false);
+
+  // Enable analytics tracking
+  useAnalytics();
+  useFeatureTracking('app_loaded', true);
+  const isOffline = useOffline();
 
   const handleTemplateSelected = async (templateType: string) => {
     clearError();
