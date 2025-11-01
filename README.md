@@ -19,6 +19,7 @@ Transform text into compelling presentation storylines with AI-powered slide gen
 - 🏆 [Competitive Analysis](COMPETITIVE_ANALYSIS.md) - Market intelligence
 - 📱 [Mobile Plan](MOBILE_PROTOTYPE_PLAN.md) - Mobile app roadmap
 - ✅ [Next Steps](.actions/NEXT_STEPS.md) - Execution checklist
+- 📊 [Implementation Status](IMPLEMENTATION_STATUS.md) - Current vs roadmap
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template)
 
