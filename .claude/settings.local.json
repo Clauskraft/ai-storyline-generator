@@ -32,7 +32,16 @@
       "Bash(docker stop:*)",
       "Bash(npm run dev:*)",
       "mcp__playwright__browser_take_screenshot",
-      "WebSearch"
+      "WebSearch",
+      "Bash(echo:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_click",
+      "Bash(railway login:*)",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_close",
+      "Bash(npm run server:*)"
     ],
     "deny": [],
     "ask": []

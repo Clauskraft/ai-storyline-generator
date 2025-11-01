@@ -6,6 +6,20 @@
 
 Transform text into compelling presentation storylines with AI-powered slide generation.
 
+## 🚀 **NEW: Strategic Roadmap to #1**
+
+**We've completed a comprehensive strategic analysis to become the #1 global presenter toolset.**
+
+**👉 START HERE:** [START_HERE.md](START_HERE.md) - Your 45-minute guide to the complete strategy
+
+**Quick Links:**
+- 📋 [Executive Summary](EXECUTIVE_SUMMARY.md) - Overview for leadership
+- ⚡ [Quick Start Strategy](QUICK_START_STRATEGY.md) - 30-minute executive brief
+- 🗺️ [Strategic Vision](STRATEGIC_VISION.md) - Complete 24-month roadmap
+- 🏆 [Competitive Analysis](COMPETITIVE_ANALYSIS.md) - Market intelligence
+- 📱 [Mobile Plan](MOBILE_PROTOTYPE_PLAN.md) - Mobile app roadmap
+- ✅ [Next Steps](.actions/NEXT_STEPS.md) - Execution checklist
+
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template)
 
 ## 🎯 Features
@@ -88,6 +102,18 @@ See [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md) for complete guide.
 
 ## 📚 Documentation
 
+### Strategic Planning
+- **[STRATEGIC_PLAN_INDEX.md](STRATEGIC_PLAN_INDEX.md)** - Complete navigation guide for all strategic documents
+- **[QUICK_START_STRATEGY.md](QUICK_START_STRATEGY.md)** - 30-minute executive brief (start here!)
+- **[EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)** - High-level overview for leadership & investors
+- **[STRATEGIC_VISION.md](STRATEGIC_VISION.md)** - Comprehensive 24-month roadmap to #1
+- **[COMPETITIVE_ANALYSIS.md](COMPETITIVE_ANALYSIS.md)** - Deep competitive intelligence
+- **[GO_TO_MARKET.md](GO_TO_MARKET.md)** - Pricing, channels, and launch strategy
+- **[USER_ACQUISITION_STRATEGY.md](USER_ACQUISITION_STRATEGY.md)** - Growth loops and retention
+- **[TECHNICAL_FOUNDATION.md](TECHNICAL_FOUNDATION.md)** - Architecture and infrastructure roadmap
+- **[MOBILE_PROTOTYPE_PLAN.md](MOBILE_PROTOTYPE_PLAN.md)** - Mobile app development plan (12-week roadmap)
+
+### Technical Guides
 - **[DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)** - Complete Docker deployment guide
 - **[RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md)** - Railway deployment guide with CLI and dashboard instructions
 - **[REFACTORING_COMPLETE.md](REFACTORING_COMPLETE.md)** - Architecture and state management details
