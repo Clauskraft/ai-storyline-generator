@@ -12,24 +12,27 @@
     "start": "npm run server"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
     "@google/genai": "^1.27.0",
-    "react": "^19.2.0",
-    "pptxgenjs": "3.12.0",
-    "jszip": "3.10.1",
-    "react-dom": "^19.2.0",
-    "pdfjs-dist": "^5.4.296",
-    "express": "^4.18.2",
+    "@mistralai/mistralai": "^1.10.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.1",
     "dompurify": "^3.0.8",
-    "isomorphic-dompurify": "^2.9.0"
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "isomorphic-dompurify": "^2.9.0",
+    "jszip": "3.10.1",
+    "openai": "^6.7.0",
+    "pdfjs-dist": "^5.4.296",
+    "pptxgenjs": "3.12.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
     "@types/dompurify": "^3.0.5",
+    "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^8.2.2",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0",
-    "concurrently": "^8.2.2"
+    "vite": "^6.2.0"
   }
 }

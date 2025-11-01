@@ -41,6 +41,23 @@ export interface BrandKit {
   toneOfVoice: string;
 }
 
+// AI Providers
+export type AIProvider =
+  | 'gemini'      // Google Gemini
+  | 'openai'      // OpenAI GPT-4
+  | 'claude'      // Anthropic Claude
+  | 'deepseek'    // DeepSeek
+  | 'mistral';    // Mistral AI
+
+export interface AIProviderConfig {
+  id: AIProvider;
+  name: string;
+  models: string[];      // Available models for this provider
+  defaultModel: string;  // Default model to use
+  supportsImages: boolean;
+  maxTokens: number;
+}
+
 // Presentation Models
 export type PresentationModel =
   | 'standard'           // Default model

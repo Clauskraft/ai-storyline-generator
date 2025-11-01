@@ -6,6 +6,23 @@ import { Slide, BrandKit, PresentationModel } from "../types";
 // Backend API URL from environment variable
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+/**
+ * Get available AI providers from backend
+ */
+export async function getAvailableProviders(): Promise<{ id: string; name: string; available: boolean }[]> {
+  try {
+    const response = await fetch(`${API_URL}/api/providers`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch available providers');
+    }
+    const data = await response.json();
+    return data.providers;
+  } catch (error) {
+    console.error('Error fetching providers:', error);
+    return [];
+  }
+}
+
 // A version of the Slide type used for storyline generation (before images are created)
 export type StorylineSlide = Omit<Slide, 'imageUrl' | 'originalImageUrl' | 'layout'>;
 
@@ -56,7 +73,8 @@ export async function generateStoryline(
   audience: string,
   goal: string,
   brandKit: BrandKit,
-  presentationModel: PresentationModel = 'standard'
+  presentationModel: PresentationModel = 'standard',
+  aiProvider: string = 'gemini'  // NEW: AI provider parameter
 ): Promise<StorylineSlide[]> {
   const result = await apiCall<{ storyline: StorylineSlide[] }>('/api/generate-storyline', {
     baseText,
@@ -66,7 +84,8 @@ export async function generateStoryline(
     audience,
     goal,
     brandKit,
-    presentationModel
+    presentationModel,
+    aiProvider  // NEW: Pass AI provider to backend
   });
   return result.storyline;
 }

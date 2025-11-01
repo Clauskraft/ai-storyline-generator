@@ -1,5 +1,5 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { generateTextFromHeadlines } from '../services/geminiService';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { generateTextFromHeadlines, getAvailableProviders } from '../services/geminiService';
 import { FileTextIcon, UploadIcon, WandSparklesIcon, GlobeIcon, FolderIcon, BrainCircuitIcon, ChevronRightIcon, NewspaperIcon } from './Icons';
 import { sanitizeUserInput, sanitizeUrl } from '../utils/sanitize';
 import { useContent, useBrandKit, useUI, useNavigation } from '../contexts/AppContext';
@@ -23,10 +23,26 @@ const Step1Input: React.FC = () => {
     const [contextUrl, setContextUrl] = useState<string>('');
     const [contextFolderFiles, setContextFolderFiles] = useState<File[] | null>(null);
 
+    // NEW: AI Provider state
+    const [aiProviders, setAiProviders] = useState<{ id: string; name: string; available: boolean }[]>([]);
+    const [selectedProvider, setSelectedProvider] = useState<string>('gemini');
+
     const folderInputRef = useRef<HTMLInputElement>(null);
 
     type InputMode = 'paste' | 'generate';
     type ContextType = 'file' | 'url' | 'folder';
+
+    // NEW: Fetch available AI providers on mount
+    useEffect(() => {
+        getAvailableProviders().then(providers => {
+            setAiProviders(providers);
+            // Set default to first available provider
+            const firstAvailable = providers.find(p => p.available);
+            if (firstAvailable) {
+                setSelectedProvider(firstAvailable.id);
+            }
+        });
+    }, []);
 
     const handleGenerateText = async () => {
         if (!headlines.trim()) {
@@ -114,6 +130,9 @@ const Step1Input: React.FC = () => {
             // SECURITY: Sanitize audience and goal inputs
             const sanitizedAudience = sanitizeUserInput(audience, 500);
             const sanitizedGoal = sanitizeUserInput(goal, 500);
+
+            // NEW: Save AI provider selection in generation options
+            setGenerationOptions({...generationOptions, aiProvider: selectedProvider});
 
             setContextInfo({ text: contextText, source: contextSource, audience: sanitizedAudience, goal: sanitizedGoal });
             setLoadingState({ isLoading: false, message: ''});
@@ -236,6 +255,34 @@ const Step1Input: React.FC = () => {
                             </select>
                             <p className="text-xs text-gray-500 mt-1">
                                 {getAvailableModels().find(m => m.id === generationOptions.presentationModel)?.description}
+                            </p>
+                        </div>
+                         {/* NEW: AI Provider Selection */}
+                         <div>
+                            <label htmlFor="ai-provider" className="block text-sm font-medium text-gray-300">AI Provider</label>
+                            <select
+                                id="ai-provider"
+                                value={selectedProvider}
+                                onChange={e => setSelectedProvider(e.target.value)}
+                                className="mt-1 block w-full pl-3 pr-10 py-2 bg-gray-900 border-gray-700 rounded-md focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
+                            >
+                                {aiProviders.filter(p => p.available).map(provider => (
+                                    <option key={provider.id} value={provider.id}>
+                                        {provider.name}
+                                    </option>
+                                ))}
+                                {aiProviders.filter(p => !p.available).length > 0 && (
+                                    <optgroup label="Unavailable (API key missing)">
+                                        {aiProviders.filter(p => !p.available).map(provider => (
+                                            <option key={provider.id} value={provider.id} disabled>
+                                                {provider.name} (unavailable)
+                                            </option>
+                                        ))}
+                                    </optgroup>
+                                )}
+                            </select>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Select which AI model to use for generating presentations
                             </p>
                         </div>
                          <div>

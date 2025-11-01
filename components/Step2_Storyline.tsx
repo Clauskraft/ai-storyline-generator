@@ -31,7 +31,8 @@ const Step2Storyline: React.FC = () => {
                         rawText, contextInfo.text, contextInfo.source,
                         generationOptions.useThinkingMode,
                         contextInfo.audience, contextInfo.goal, brandKit,
-                        generationOptions.presentationModel
+                        generationOptions.presentationModel,
+                        generationOptions.aiProvider || 'gemini'  // NEW: Pass AI provider
                     );
                     setStoryline(result);
                 } catch (err) {

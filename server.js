@@ -1,10 +1,11 @@
 // Backend proxy server for secure API key management
-// This keeps the Gemini API key server-side only
+// Multi-provider AI support: Gemini, OpenAI, Claude, DeepSeek, Mistral
 
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type, Modality } from '@google/genai';
+import { aiManager } from './aiProviderManager.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -132,18 +133,19 @@ function rateLimit(req, res, next) {
 // Apply rate limiting to all API routes
 app.use('/api/', rateLimit);
 
-// Initialize Gemini AI (server-side only)
+// Initialize AI Providers (multi-provider support)
+// AIProviderManager will initialize all available providers based on API keys
+console.log('\n🤖 Initializing AI Providers...');
+console.log('Available providers:', aiManager.getAvailableProviders().join(', '));
+
+// Keep Gemini for backward compatibility with direct Gemini-specific calls
 let ai;
 try {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY not found in environment variables');
+  if (process.env.GEMINI_API_KEY) {
+    ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   }
-  ai = new GoogleGenAI({ apiKey });
-  console.log('✅ Gemini AI initialized successfully');
 } catch (error) {
-  console.error('❌ Failed to initialize Gemini AI:', error.message);
-  process.exit(1);
+  console.warn('⚠️ Gemini direct initialization failed:', error.message);
 }
 
 // Health check endpoint
@@ -151,14 +153,43 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'API proxy server running' });
 });
 
+// Get available AI providers
+app.get('/api/providers', (req, res) => {
+  const providers = aiManager.getAvailableProviders();
+  const providerInfo = providers.map(id => ({
+    id,
+    name: {
+      'gemini': 'Google Gemini',
+      'openai': 'OpenAI GPT',
+      'claude': 'Anthropic Claude',
+      'deepseek': 'DeepSeek',
+      'mistral': 'Mistral AI'
+    }[id],
+    available: aiManager.isProviderAvailable(id)
+  }));
+  res.json({ providers: providerInfo });
+});
+
 // Generate storyline from text
 app.post('/api/generate-storyline', async (req, res) => {
   try {
-    const { baseText, contextText, contextSource, useThinkingMode, audience, goal, brandKit, presentationModel = 'standard' } = req.body;
+    const {
+      baseText, contextText, contextSource, useThinkingMode,
+      audience, goal, brandKit, presentationModel = 'standard',
+      aiProvider = 'gemini'  // NEW: AI provider selection
+    } = req.body;
 
     // SECURITY: Validate and sanitize all inputs
     if (!baseText || typeof baseText !== 'string') {
       return res.status(400).json({ error: 'Invalid baseText parameter' });
+    }
+
+    // Validate AI provider
+    if (!aiManager.isProviderAvailable(aiProvider)) {
+      return res.status(400).json({
+        error: `AI provider "${aiProvider}" not available`,
+        availableProviders: aiManager.getAvailableProviders()
+      });
     }
 
     const sanitizedBaseText = validateStringInput(baseText, 50000);
@@ -167,7 +198,19 @@ app.post('/api/generate-storyline', async (req, res) => {
     const sanitizedAudience = validateStringInput(audience, 500);
     const sanitizedGoal = validateStringInput(goal, 500);
 
-    const modelName = useThinkingMode ? "gemini-2.5-pro" : "gemini-2.5-flash";
+    // Model selection based on provider
+    let modelName;
+    if (aiProvider === 'gemini') {
+      modelName = useThinkingMode ? "gemini-2.5-pro" : "gemini-2.5-flash";
+    } else if (aiProvider === 'openai') {
+      modelName = "gpt-4o";
+    } else if (aiProvider === 'claude') {
+      modelName = "claude-3-7-sonnet-20250219";
+    } else if (aiProvider === 'deepseek') {
+      modelName = "deepseek-chat";
+    } else if (aiProvider === 'mistral') {
+      modelName = "mistral-large-latest";
+    }
 
     const storylineSchema = {
       type: Type.ARRAY,
@@ -218,17 +261,39 @@ Based on the goal, audience, tone, base text, context, and the specified present
 Output the result as a JSON array of slide objects, adhering to the provided schema. The presentation should have between 4 and 8 slides.
 `;
 
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: storylineSchema,
-        ...(useThinkingMode && { thinkingConfig: { thinkingBudget: 32768 } })
-      },
-    });
+    let storyline;
 
-    const storyline = JSON.parse(response.text);
+    // Use provider-specific generation
+    if (aiProvider === 'gemini' && ai) {
+      // Gemini with structured output
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: storylineSchema,
+          ...(useThinkingMode && { thinkingConfig: { thinkingBudget: 32768 } })
+        },
+      });
+      storyline = JSON.parse(response.text);
+    } else {
+      // Other providers - use aiManager (returns plain text, needs parsing)
+      const enhancedPrompt = prompt + '\n\nIMPORTANT: Respond ONLY with a valid JSON array. No markdown, no explanations, just the JSON array.';
+      const responseText = await aiManager.generateText(aiProvider, enhancedPrompt, modelName);
+
+      // Extract JSON from response (handle markdown code blocks)
+      let jsonText = responseText.trim();
+      if (jsonText.startsWith('```')) {
+        jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?$/g, '').trim();
+      }
+
+      try {
+        storyline = JSON.parse(jsonText);
+      } catch (parseError) {
+        console.error('Failed to parse AI response as JSON:', jsonText.substring(0, 500));
+        throw new Error(`AI returned invalid JSON: ${parseError.message}`);
+      }
+    }
 
     // Ensure unique IDs
     const storylineWithIds = storyline.map(slide => ({

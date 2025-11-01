@@ -24,7 +24,15 @@
       "Bash(docker build:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(for i in {1..6})",
+      "Bash(do echo \"Check $i:\")",
+      "Bash(done)",
+      "Bash(netstat:*)",
+      "Bash(docker stop:*)",
+      "Bash(npm run dev:*)",
+      "mcp__playwright__browser_take_screenshot",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
