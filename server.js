@@ -763,6 +763,86 @@ app.get('/api/usage', (req, res) => {
   });
 });
 
+// NEW: Authentication endpoints
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, fullName } = req.body;
+    const { authService } = await import('./services/authService.js');
+    
+    const user = await authService.register(email, password, fullName);
+    res.status(201).json({ user });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const { authService } = await import('./services/authService.js');
+    
+    const { user, token } = await authService.login(email, password);
+    res.json({ user, token });
+  } catch (error) {
+    res.status(401).json({ error: error.message });
+  }
+});
+
+app.post('/api/auth/verify-email', async (req, res) => {
+  try {
+    const { token } = req.body;
+    const { authService } = await import('./services/authService.js');
+    
+    const user = await authService.verifyEmail(token);
+    res.json({ user });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/auth/request-password-reset', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const { authService } = await import('./services/authService.js');
+    
+    const { token, email: userEmail } = await authService.requestPasswordReset(email);
+    // In production, send email with reset link
+    console.log(`Password reset token for ${userEmail}: ${token}`);
+    res.json({ message: 'Password reset email sent' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    const { authService } = await import('./services/authService.js');
+    
+    await authService.resetPassword(token, newPassword);
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/auth/me', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Missing authorization' });
+    }
+    
+    const token = authHeader.substring(7);
+    const { authService } = await import('./services/authService.js');
+    const user = await authService.verifyToken(token);
+    
+    res.json({ user });
+  } catch (error) {
+    res.status(401).json({ error: error.message });
+  }
+});
+
 // Serve static files in production (Docker/deployed environment)
 if (process.env.NODE_ENV === 'production') {
   // Serve the built frontend
