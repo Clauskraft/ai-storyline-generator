@@ -27,8 +27,10 @@ COPY package*.json ./
 # Install only production dependencies
 RUN npm ci --omit=dev
 
-# Copy backend server (pure JavaScript - no TypeScript)
+# Copy backend server files (pure JavaScript - no TypeScript)
 COPY server.js ./
+COPY aiProviderManager.js ./
+COPY services/*.js ./services/
 
 # Copy built frontend from builder stage
 COPY --from=frontend-builder /app/dist ./dist
