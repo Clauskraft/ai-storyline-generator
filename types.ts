@@ -62,6 +62,7 @@ export interface AIProviderConfig {
 export type PresentationModel =
   | 'standard'           // Default model
   | 'mcclaus-kinski'     // McClaus Kinski method
+  | 'advanced-business'  // Advanced Business with industry sources
   | 'custom';            // For future custom models
 
 export interface PresentationModelConfig {

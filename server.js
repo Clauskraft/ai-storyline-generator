@@ -6,6 +6,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type, Modality } from '@google/genai';
 import { aiManager } from './aiProviderManager.js';
+import { generateIndustryContext } from './services/industrySourcesService.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -66,6 +67,47 @@ CONTENT STRATEGY:
 - Ensure each title is hypothesis-driven
 - Use the SCR framework to structure the overall narrative
 - Design for the executive summary to stand alone as the complete story`,
+
+    'advanced-business': `Create an executive-level business presentation with industry sources and strategic insights:
+
+CORE PRINCIPLES:
+1. INDUSTRY AUTHORITY: Reference and cite authoritative industry sources (Gartner, Forrester, IDC, AWS, NIST, CISA, etc.)
+2. DATA-DRIVEN INSIGHTS: Support all claims with industry statistics, trends, and research
+3. EXECUTIVE SUMMARY: Begin with a clear, comprehensive overview of key insights and recommendations
+4. MULTI-DOMAIN PERSPECTIVE: Address relevant aspects across IT, Cloud, AI, Telecommunications, and Cybersecurity
+
+CONTENT REQUIREMENTS:
+1. SOURCE CITATIONS: Where relevant, include references to industry sources
+   - Example: "According to Gartner, cloud adoption increased 35% in 2024"
+   - Example: "NIST Cybersecurity Framework recommends..."
+
+2. TREND ANALYSIS: Include current industry trends and best practices
+   - Market trends and growth projections
+   - Emerging technologies and innovations
+   - Industry standards and compliance requirements
+
+3. STRATEGIC RECOMMENDATIONS: Provide actionable, evidence-based insights
+   - Grounded in industry research and data
+   - Address both technical and business stakeholders
+   - Include forward-looking perspectives
+
+4. AUTHORITATIVE TONE: Professional, evidence-based communication
+   - Clear, confident language
+   - Avoid speculation without evidence
+   - Acknowledge uncertainties where appropriate
+
+SLIDE STRUCTURE:
+1. Title Slide: Clear, professional title
+2. Executive Summary: Comprehensive overview with key insights
+3. Body Slides: Each addressing one strategic point with industry context
+4. Recommendations: Actionable next steps with supporting evidence
+5. Conclusion: Summary and forward-looking perspective
+
+DESIGN PRINCIPLES:
+- Professional, clean layout
+- Strategic use of data visualizations
+- Consistent formatting and color scheme
+- Emphasis on key insights and recommendations`,
 
     'custom': `Create a presentation with flexible structure based on user requirements.`
   };
@@ -228,6 +270,14 @@ app.post('/api/generate-storyline', async (req, res) => {
 
     const modelInstructions = getModelPromptInstructions(presentationModel);
 
+    // Add industry sources context for advanced-business model
+    let industryContext = '';
+    if (presentationModel === 'advanced-business') {
+      // Generate industry context based on the topic
+      const topic = sanitizedBaseText + ' ' + (sanitizedContextText || '');
+      industryContext = '\n\n' + generateIndustryContext(topic) + '\n';
+    }
+
     const prompt = `
 You are an expert presentation and storyline creator. Your task is to transform a text into a clear and compelling slide-based storyline, tailored for a specific audience and goal.
 
@@ -244,7 +294,7 @@ ${sanitizedBaseText}
 ---
 ${sanitizedContextText || 'No additional context provided.'}
 ---
-
+${industryContext}
 **PRESENTATION MODEL METHODOLOGY:**
 ${modelInstructions}
 

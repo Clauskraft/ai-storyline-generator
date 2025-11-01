@@ -44,6 +44,25 @@ export const PRESENTATION_MODELS: Record<PresentationModel, PresentationModelCon
     slideTypes: ['TITLE_CONTENT', 'TITLE_ONLY', 'CONTENT_RIGHT', 'TWO_COLUMNS']
   },
 
+  'advanced-business': {
+    id: 'advanced-business',
+    name: 'Advanced Business with Industry Sources',
+    description: 'Executive-level presentations with curated industry sources from IT, Cloud, AI, Telecom, and Cybersecurity',
+    rules: [
+      'INDUSTRY CONTEXT: Reference authoritative sources (Gartner, Forrester, IDC, NIST, CISA, etc.)',
+      'DATA-DRIVEN: Support claims with industry statistics and trends',
+      'SOURCE CITATIONS: Include source references where relevant',
+      'EXECUTIVE SUMMARY: Clear overview with key insights and recommendations',
+      'TREND ANALYSIS: Current industry trends and best practices',
+      'STRATEGIC RECOMMENDATIONS: Actionable insights based on industry data',
+      'AUTHORITATIVE TONE: Professional, evidence-based communication',
+      'MULTI-DOMAIN COVERAGE: Address relevant aspects across IT, Cloud, AI, Telecom, Cyber',
+      'FORWARD-LOOKING: Include future outlook and predictions',
+      'STAKEHOLDER ALIGNMENT: Address concerns of technical and business stakeholders'
+    ],
+    slideTypes: ['TITLE_CONTENT', 'TITLE_ONLY', 'CONTENT_RIGHT', 'TWO_COLUMNS']
+  },
+
   'custom': {
     id: 'custom',
     name: 'Custom Model',
@@ -132,6 +151,48 @@ CONTENT STRATEGY:
 - Ensure each title is hypothesis-driven
 - Use the SCR framework to structure the overall narrative
 - Design for the executive summary to stand alone as the complete story`;
+
+    case 'advanced-business':
+      return `Create an executive-level business presentation with industry sources and strategic insights:
+
+CORE PRINCIPLES:
+1. INDUSTRY AUTHORITY: Reference and cite authoritative industry sources (Gartner, Forrester, IDC, AWS, NIST, CISA, etc.)
+2. DATA-DRIVEN INSIGHTS: Support all claims with industry statistics, trends, and research
+3. EXECUTIVE SUMMARY: Begin with a clear, comprehensive overview of key insights and recommendations
+4. MULTI-DOMAIN PERSPECTIVE: Address relevant aspects across IT, Cloud, AI, Telecommunications, and Cybersecurity
+
+CONTENT REQUIREMENTS:
+1. SOURCE CITATIONS: Where relevant, include references to industry sources
+   - Example: "According to Gartner, cloud adoption increased 35% in 2024"
+   - Example: "NIST Cybersecurity Framework recommends..."
+
+2. TREND ANALYSIS: Include current industry trends and best practices
+   - Market trends and growth projections
+   - Emerging technologies and innovations
+   - Industry standards and compliance requirements
+
+3. STRATEGIC RECOMMENDATIONS: Provide actionable, evidence-based insights
+   - Grounded in industry research and data
+   - Address both technical and business stakeholders
+   - Include forward-looking perspectives
+
+4. AUTHORITATIVE TONE: Professional, evidence-based communication
+   - Clear, confident language
+   - Avoid speculation without evidence
+   - Acknowledge uncertainties where appropriate
+
+SLIDE STRUCTURE:
+1. Title Slide: Clear, professional title
+2. Executive Summary: Comprehensive overview with key insights
+3. Body Slides: Each addressing one strategic point with industry context
+4. Recommendations: Actionable next steps with supporting evidence
+5. Conclusion: Summary and forward-looking perspective
+
+DESIGN PRINCIPLES:
+- Professional, clean layout
+- Strategic use of data visualizations
+- Consistent formatting and color scheme
+- Emphasis on key insights and recommendations`;
 
     case 'custom':
       return `Create a presentation with flexible structure based on user requirements.`;
