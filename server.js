@@ -843,6 +843,132 @@ app.get('/api/auth/me', async (req, res) => {
   }
 });
 
+// NEW: Presentation CRUD API endpoints
+app.post('/api/presentations', async (req, res) => {
+  try {
+    const { presentationService } = await import('./services/presentationService.js');
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const { authService } = await import('./services/authService.js');
+    const token = authHeader.substring(7);
+    const user = await authService.verifyToken(token);
+    
+    const presentation = await presentationService.createPresentation(user.id, req.body);
+    res.status(201).json({ presentation });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/presentations', async (req, res) => {
+  try {
+    const { presentationService } = await import('./services/presentationService.js');
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const { authService } = await import('./services/authService.js');
+    const token = authHeader.substring(7);
+    const user = await authService.verifyToken(token);
+    
+    const presentations = await presentationService.listPresentations(user.id, req.query);
+    res.json({ presentations });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/presentations/:id', async (req, res) => {
+  try {
+    const { presentationService } = await import('./services/presentationService.js');
+    const authHeader = req.headers.authorization;
+    
+    let userId = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const { authService } = await import('./services/authService.js');
+      const token = authHeader.substring(7);
+      const user = await authService.verifyToken(token);
+      userId = user.id;
+    }
+    
+    const presentation = await presentationService.getPresentationById(req.params.id, userId);
+    
+    if (!presentation) {
+      return res.status(404).json({ error: 'Presentation not found' });
+    }
+    
+    res.json({ presentation });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/api/presentations/:id', async (req, res) => {
+  try {
+    const { presentationService } = await import('./services/presentationService.js');
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const { authService } = await import('./services/authService.js');
+    const token = authHeader.substring(7);
+    const user = await authService.verifyToken(token);
+    
+    const presentation = await presentationService.updatePresentation(req.params.id, user.id, req.body);
+    res.json({ presentation });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/presentations/:id', async (req, res) => {
+  try {
+    const { presentationService } = await import('./services/presentationService.js');
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const { authService } = await import('./services/authService.js');
+    const token = authHeader.substring(7);
+    const user = await authService.verifyToken(token);
+    
+    await presentationService.deletePresentation(req.params.id, user.id);
+    res.json({ message: 'Presentation deleted' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/presentations/:id/slides', async (req, res) => {
+  try {
+    const { presentationService } = await import('./services/presentationService.js');
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const { authService } = await import('./services/authService.js');
+    const token = authHeader.substring(7);
+    const user = await authService.verifyToken(token);
+    
+    const slides = await presentationService.saveSlides(req.params.id, user.id, req.body.slides);
+    res.json({ slides });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Serve static files in production (Docker/deployed environment)
 if (process.env.NODE_ENV === 'production') {
   // Serve the built frontend
@@ -868,8 +994,14 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 API Proxy Server running on http://localhost:${PORT}`);
   console.log(`🔒 Gemini API key is secure (server-side only)`);
   console.log(`🌍 CORS enabled for: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
 });
+
+// Initialize WebSocket server for collaboration
+if (server) {
+  const { collaborationService } = await import('./services/collaborationService.js');
+  collaborationService.initialize(server);
+}

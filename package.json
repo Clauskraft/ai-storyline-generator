@@ -34,10 +34,15 @@
     "pdfjs-dist": "^5.4.296",
     "pg": "^8.16.3",
     "pptxgenjs": "3.12.0",
+    "prosemirror-model": "^1.25.4",
+    "prosemirror-transform": "^1.10.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-redux": "^9.2.0",
-    "socket.io-client": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "ws": "^8.18.3",
+    "yjs": "^13.6.27"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
